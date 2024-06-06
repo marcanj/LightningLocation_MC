@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Monte Carlo Simulator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 36px;
+            font-weight: 700;
+            color: #e5640c; /* Title color */
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #5b443c;  /* Subtitle color */
+            text-align: center; /* Center aligned */
+        }
+        #map { 
+            height: 550px; /* Adjust the height as needed */
+            width: 1000px; /* Occupy 75% of the page */
+            margin: 0 auto; /* Center the map */
+        }
+        #footer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+        #logo {
+            width: 200px;
+            height: auto;
+        }
+        #colorbar {
+            position: absolute;
+            top: 600px;
+            right: 350px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #colorbar h3 {
+            text-align: center;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        #colorbar-gradient {
+            height: 20px;
+            background: linear-gradient(to right, #0000FF, #FF0000); /* Adjust colors as needed */
+            border-radius: 5px;
+        }
+
+        #colorbar-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+
+        #colorbar-labels span {
+            font-size: 12px;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Title -->
+    <h1>Lightning Monte Carlo Simulator</h1>
+    <!-- Subtitle -->
+    <h2>Simulation of {{ lightning|length }} lightning strikes performed in a network with {{ blue_stations|length + red_stations|length }} stations:</h2>
+    <!-- Map -->
+    <div id="map"></div>
+        <!-- Footer with logo -->
+    <!-- Colorbar -->
+    <div id="colorbar">
+        <h3>Error (km)</h3>
+        <div id="colorbar-gradient"></div>
+        <div id="colorbar-labels">
+            <span>0</span>
+            <span>2.5</span>
+            <span>5.0</span>
+            <!-- You can add more labels if needed -->
+        </div>
+    </div>
+    <script>
+        var map = L.map('map').setView([{{ avg_coordinates[0] }}, {{ avg_coordinates[1] }}], 7);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var blue_sta = {{ blue_stations|tojson }};
+        var red_sta = {{ red_stations|tojson }};
+        var ls = {{ lightning|tojson }};
+
+        var blueIcon = L.icon({
+            iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+        });
+
+        var redIcon = L.icon({
+            iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+        });
+
+        // Add blue markers for blue stations
+        blue_sta.forEach(function(station) {
+            L.marker([station.lat, station.lon], {icon: blueIcon}).addTo(map)
+                .bindPopup(`<b>Station</b><br>Latitude: ${(station.lat).toFixed(2)}, Longitude: ${(station.lon).toFixed(2)}`);
+        });
+
+        // Add red markers for red stations
+        red_sta.forEach(function(station) {
+            L.marker([station.lat, station.lon], {icon: redIcon}).addTo(map)
+                .bindPopup(`<b>Added station</b><br>Latitude: ${(station.lat).toFixed(2)}, Longitude: ${(station.lon).toFixed(2)}`);
+        });
+
+        function getColor(value) {
+            if (value === null || value > 5000) {
+                return "#FF0000"; // Red color
+            } else {
+                // Scale the value to be between 0 and 1
+                var scaledValue = value / 5000;
+
+                // Define the blue-to-red colormap
+                var blue = [0, 0, 255]; // Blue color (RGB)
+                var red = [255, 0, 0]; // Red color (RGB)
+
+                // Interpolate between blue and red based on the scaled value
+                var interpolatedColor = interpolateColors(blue, red, scaledValue);
+
+                // Convert the interpolated color to hexadecimal format
+                return rgbToHex(interpolatedColor[0], interpolatedColor[1], interpolatedColor[2]);
+            }
+        }
+
+        // Helper function to interpolate between two colors
+        function interpolateColors(color1, color2, factor) {
+            var result = [];
+            for (var i = 0; i < 3; i++) {
+                result.push(Math.round(color1[i] + factor * (color2[i] - color1[i])));
+            }
+            return result;
+        }
+
+        // Helper function to convert RGB color to hexadecimal format
+        function rgbToHex(r, g, b) {
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+
+        var ls = {{ lightning|tojson }};
+
+        ls.forEach(function(station) {
+            var color = getColor(station.tdoa_estim_error);
+            L.circleMarker([station.lat, station.lon], {
+                radius:1,
+                color: color,
+                fillOpacity: 0.8
+            }).addTo(map)
+            .bindPopup(`<b>Curr: ${(station.curr / 1000).toFixed(1)}kA, Nsta: ${station.nsta}</b><br>Error: ${station.tdoa_estim_error} m`);
+        });
+
+    </script>
+</body>
+</html>

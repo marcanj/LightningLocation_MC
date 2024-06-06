@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Monte Carlo Simulator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 36px;
+            font-weight: 700;
+            color: #e5640c; /* Title color */
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #5b443c;  /* Subtitle color */
+            text-align: center; /* Center aligned */
+        }
+        .region-btn-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .region-btn {
+            margin: 5px;
+            padding: 10px 20px;
+            background-color: #e5640c;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .region-btn:hover {
+            background-color: #4b362c; /* Darker shade for hover effect */
+        }
+        #footer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+        #logo {
+            width: 200px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Title -->
+    <h1>Lightning Monte Carlo Simulator</h1>
+    <!-- Subtitle -->
+    <h2>Select network region to perform study:</h2>
+    <!-- Region buttons -->
+    <div class="region-btn-container">
+        <form action="/" method="post">
+            {% for region in regions %}
+                <button class="region-btn" type="submit" name="region" value="{{ region }}">{{ region }}</button>
+            {% endfor %}
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning Monte Carlo Simulator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 36px;
+            font-weight: 700;
+            color: #e5640c; /* Title color */
+        }
+        h2 {
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #5b443c;  /* Subtitle color */
+            text-align: center; /* Center aligned */
+        }
+        #map { 
+            height: 550px; /* Adjust the height as needed */
+            width: 1000px; /* Occupy 75% of the page */
+            margin: 0 auto; /* Center the map */
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #e5640c; /* Button background color */
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #4b362c; /* Darker shade for hover effect */
+        }
+        #footer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+        }
+        #logo {
+            width: 200px;
+            height: auto;
+        }
+        #numLightning {
+            text-align: center;
+            margin-top: 20px;
+        }
+        #numLightning label {
+            font-size: 18px;
+            color: #5b443c; /* Subtitle color */
+        }
+        #numLS {
+            width: 50px;
+            margin-left: 10px;
+            margin-bottom: 10px;
+        }
+        #assumeDetectors {
+            text-align: center;
+            margin-top: 20px;
+        }
+        #assumeLabel {
+            font-size: 16px; /* Adjust font size */
+            color: #5b443c; /* Subtitle color */
+        }
+        #detectorsYesNo {
+            display: inline-block;
+        }
+        #detectorsYesNo input[type="radio"] {
+            display: none;
+        }
+        .radioLabel {
+            cursor: pointer;
+            margin-left: 10px; /* Adjust spacing between icon and text */
+        }
+        .icon {
+            font-size: 20px; /* Adjust icon size */
+            color: #5b443c; /* Icon color */
+        }
+        .radioLabel:hover .icon {
+            opacity: 0.7; /* Reduce opacity when hovered */
+        }
+        #yesRadio:checked + .radioLabel .icon {
+            color: #28a745; /* Tick icon color when checked */
+        }
+        #noRadio:checked + .radioLabel .icon {
+            color: #dc3545; /* Cross icon color when checked */
+        }
+    </style>
+</head>
+<body>
+    <!-- Title -->
+    <h1>Lightning Monte Carlo Simulator</h1>
+    <!-- Subtitle -->
+    <h2>Click on the map to add extra stations (if desired), and press compute.</h2>
+    <!-- Map -->
+    <div id="map"></div>
+    <!-- Input field for number of lightning strikes -->
+    <div id="numLightning">
+        <label for="numLS">Number of lightning strikes to simulate:</label>
+        <input type="number" id="numLS" name="numLS" value="100">
+    </div>
+    <!-- Input field for whether all detectors will detect lightning strikes -->
+    <div id="assumeDetectors">
+        <label id="assumeLabel">Assume all detectors will detect all lightning strikes:</label>
+        <div id="detectorsYesNo">
+            <input type="radio" id="yesRadio" name="detectorsYesNo" value="yes" checked>
+            <label class="radioLabel" for="yesRadio">
+                <span class="icon">&#10003;</span> <!-- Tick icon -->
+            </label>
+            <input type="radio" id="noRadio" name="detectorsYesNo" value="no">
+            <label class="radioLabel" for="noRadio">
+                <span class="icon">&#10007;</span> <!-- Cross icon -->
+            </label>
+        </div>
+    </div>
+
+
+    <!-- Compute button -->
+    <button id="computeBtn">Compute</button>
+    <!-- Loading spinner -->
+    <div id="loadingSpinner" style="display: none; text-align: center;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    <!-- Footer with logo -->
+    <script>
+        //var map = L.map('map').setView([27.994402, -81.760254], 7); // Centered around Florida
+        var map = L.map('map').setView([{{ avg_coordinates[0] }}, {{ avg_coordinates[1] }}], 7);
+
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var stations = {{ stations|tojson }};
+
+        var blueIcon = L.icon({
+            iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+        });
+
+        var redIcon = L.icon({
+            iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+        });
+
+        // Add blue markers for selected stations
+        stations.forEach(function(station) {
+            L.marker([station.lat, station.lon], {icon: blueIcon}).addTo(map)
+                .bindPopup(`<b>${station.name}</b><br>Latitude: ${station.lat}, Longitude: ${station.lon}`);
+        });
+
+        // Handle click events to add red markers
+        map.on('click', function(e) {
+            var newMarker = L.marker(e.latlng, {icon: redIcon, draggable: true}).addTo(map);
+            newMarker.bindPopup(`<b>New Marker</b><br>Latitude: ${e.latlng.lat.toFixed(6)}, Longitude: ${e.latlng.lng.toFixed(6)}`);
+
+            // When a new marker is clicked, remove it from the map
+            newMarker.on('click', function() {
+                map.removeLayer(newMarker);
+            });
+        });
+        
+        // Handle Compute button click
+        document.getElementById('computeBtn').addEventListener('click', function() {
+            // Show loading spinner
+            document.getElementById('loadingSpinner').style.display = 'block';
+            
+            var blueStations = [];
+            var redStations = [];
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    var coordinates = layer.getLatLng();
+                    if (layer.options.icon.options.iconUrl.includes('blue')) {
+                        blueStations.push({lat: coordinates.lat, lon: coordinates.lng});
+                    } else if (layer.options.icon.options.iconUrl.includes('red')) {
+                        redStations.push({lat: coordinates.lat, lon: coordinates.lng});
+                    }
+                }
+            });
+
+            // Get the value of the number of lightning strikes
+            var numLS = document.getElementById('numLS').value;
+            // Variable to store the selection (true for tick, false for cross)
+            var tickSelected = document.getElementById('yesRadio').checked;
+            // If you want to set the variable based on user interaction
+            document.getElementById('yesRadio').addEventListener('change', function() {
+                tickSelected = true;
+            });
+            document.getElementById('noRadio').addEventListener('change', function() {
+                tickSelected = false;
+            });
+
+            // Convert blueStations and redStations to JSON and send to server along with numLS
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/calculate', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    // Check if the operation was successful
+                    if (xhr.responseText === 'Worked') {
+                        // Redirect the user to another page
+                        window.location.href = '/operation-finished';
+                    } else {
+                        // Handle error if needed
+                        console.error('Error:', xhr.responseText);
+                    }
+                } else {
+                    console.error('Request failed with status:', xhr.status);
+                }
+            };
+            xhr.send(JSON.stringify({blue_stations: blueStations, red_stations: redStations, num_ls: numLS, tickSelected: tickSelected}));
+        });
+
+    </script>
+</body>
+</html>
