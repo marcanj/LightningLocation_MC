@@ -1,0 +1,112 @@
+[
+    {
+        "id": 0,
+        "reg": "SampleNetwork-BRA",
+        "name": "Betim",
+        "code":"BET",
+        "lat": -19.92654,
+        "lon": -44.13665,
+        "receiver": "receiver00"
+    },
+    {
+        "id": 1,
+        "reg": "SampleNetwork-BRA",
+        "name": "Contagem",
+        "code":"CTG",
+        "lat": -19.935201,
+        "lon": -44.026521,
+        "receiver": "receiver01"
+    },
+    {
+        "id": 2,
+        "reg": "SampleNetwork-BRA",
+        "name": "BHCentro",
+        "code":"BHC",
+        "lat": -19.92623,
+        "lon": -43.93742,
+        "receiver": "receiver02"
+    },
+    {
+        "id": 3,
+        "reg": "SampleNetwork-BRA",
+        "name": "Pampulha",
+        "code":"BET",
+        "lat": -19.84585634960858,
+        "lon": -44.007123389556014,
+        "receiver": "receiver03"
+    },
+    {
+        "id": 4,
+        "reg": "SampleNetwork-BRA",
+        "name": "BhShopp",
+        "code":"BHS",
+        "lat": -19.975066487896566,
+        "lon": -43.94400012804039,
+        "receiver": "receiver04"
+    },
+    {
+        "id": 5,
+        "reg": "SampleNetwork-BRA",
+        "name": "SantaLuzia",
+        "code":"SAN",
+        "lat": -19.834723272701623,
+        "lon": -43.899945351774285,
+        "receiver": "receiver05"
+    },
+    {
+        "id": 6,
+        "reg": "SampleNetwork-BRA",
+        "name": "Sabara",
+        "code":"SBR",
+        "lat": -19.880487594468494,
+        "lon": -43.84438373096105,
+        "receiver": "receiver06"
+    },
+    {
+        "id": 7,
+        "reg": "SampleNetwork-USA",
+        "name": "HoustonNorth1",
+        "code":"HN1",
+        "lat": 30.04803,
+        "lon": -95.7328,
+        "receiver": "receiver01"
+    },
+    {
+        "id": 8,
+        "reg": "SampleNetwork-USA",
+        "name": "HoustonNorth2",
+        "code":"HN2",
+        "lat": 30.03602, 
+        "lon": -95.09503,
+        "receiver": "56b033840"
+    },
+    {
+        "id": 9,
+        "reg": "SampleNetwork-USA",
+        "name": "HoustonWest",
+        "code":"HW1",
+        "lat": 29.71240, 
+        "lon": -95.745557,
+        "receiver": "56b033cc4"
+    },
+    {
+        "id": 10,
+        "reg": "SampleNetwork-USA",
+        "name": "HoustonEast",
+        "code":"HE1",
+        "lat": 29.734486, 
+        "lon": -94.976019,
+        "receiver": "56b0340ce"
+    },
+    {
+        "id": 11,
+        "reg": "SampleNetwork-USA",
+        "name": "HoustonSouth",
+        "code":"HS1",
+        "lat": 29.452153242513926, 
+        "lon": -95.08347755872285,
+        "receiver": "56b033af5"
+    }
+]
+
+
