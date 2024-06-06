@@ -74,6 +74,18 @@
             color: #555;
         }
 
+        #warning {
+            display: none; /* Hide the warning initially */
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            background-color: #ffc107; /* Yellow background */
+            color: #333; /* Text color */
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+        }
+
     </style>
 </head>
 <body>
@@ -83,7 +95,9 @@
     <h2>Simulation of {{ lightning|length }} lightning strikes performed in a network with {{ blue_stations|length + red_stations|length }} stations:</h2>
     <!-- Map -->
     <div id="map"></div>
-        <!-- Footer with logo -->
+    <!-- Warning message -->
+    <div id="warning"></div>
+    <!-- Footer with logo -->
     <!-- Colorbar -->
     <div id="colorbar">
         <h3>Error (km)</h3>
@@ -176,7 +190,12 @@
             }).addTo(map)
             .bindPopup(`<b>Curr: ${(station.curr / 1000).toFixed(1)}kA, Nsta: ${station.nsta}</b><br>Error: ${station.tdoa_estim_error} m`);
         });
-
+        var warningMessage = {{ warning_message|tojson }};
+        var warningElement = document.getElementById("warning");
+        if (warningMessage !== null) {
+            warningElement.textContent = warningMessage;
+            warningElement.style.display = "block"; // Show the warning
+        }
     </script>
 </body>
 </html>
